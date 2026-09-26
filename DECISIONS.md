@@ -36,3 +36,12 @@ _(to fill as contradictions are found)_
 What you chose not to build, and the reason.
 
 _(to fill)_
+
+## Sources — libraries, posts, tools
+
+Per submission rules: anything taken from a library, blog post, or tool is cited here with what
+it was used for. All implementation is original unless listed below.
+
+- Starter fork: `rhinostream/Hackathons` (fork parent) — base skeleton only, no reference solution used.
+- _(append entries as used, e.g. `- better-sqlite3 docs — <what for>`)_
+- No AI-generated code is submitted unexplained: per DISCOVERY-BRIEF, every line must be explainable live.

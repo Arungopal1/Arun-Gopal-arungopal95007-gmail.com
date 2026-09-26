@@ -33,6 +33,13 @@ different nonce, so special-casing this draw fails.
 _What did you expect each failure mode to look like before you ran it? Which one behaved
 differently from your expectation, and what did that tell you?_
 
+2026-09-26: Implemented `verifyAccessToken` in `starter/server/auth.js`. Expected the stub to fail
+everything (it did — 0/43 shape-checks). Prediction that was wrong: assumed `Buffer.from(x,
+'base64url')` throws on `!!!not-base64!!!`; it returns short bytes instead, so length check +
+`timingSafeEqual` is what rejects it, not the decode. Also added explicit object checks for header
+/ payload (`null` / array / string) so a crafted `null` payload becomes 401, not a TypeError.
+`node scripts/check-jwt.js`: ALL PASS 43/43.
+
 ## Phase 2 — caller context and the resolution engine
 
 _This is where most people's first model is wrong. Write down the model you started with, the

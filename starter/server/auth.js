@@ -71,12 +71,72 @@ export function issueAccessToken({ userId, orgId, role, permVersion }, secret) {
 // `node scripts/check-jwt.js` is the public test suite for this function.
 // ---------------------------------------------------------------------------
 export function verifyAccessToken(token, secret) {
-  // YOURS TO WRITE. Every failure mode listed above must be a 401 UNAUTHENTICATED.
-  // `node scripts/check-jwt.js` is the public suite for this function.
-  throw Object.assign(
-    new Error('TODO: server/auth.js — verifyAccessToken() is yours to write (AUTH-DATA-MODEL.md §10).'),
-    { code: 'NOT_IMPLEMENTED' }
-  );
+  // Structure first: exactly 3 dot-separated parts. Covers null/undefined/empty,
+  // 1-2-4 segment tokens and opaque refresh tokens (no dots).
+  const parts = String(token ?? '').split('.');
+  if (parts.length !== 3) throw unauthenticated('malformed token');
+  const [hPart, pPart, sPart] = parts;
+
+  // Header: must decode to a JSON object. Any decode/parse failure is a 401.
+  let header;
+  try {
+    const raw = unb64(hPart).toString('utf8');
+    header = JSON.parse(raw);
+  } catch {
+    throw unauthenticated('malformed token header');
+  }
+  if (typeof header !== 'object' || header === null || Array.isArray(header)) {
+    throw unauthenticated('malformed token header');
+  }
+
+  // Pin algorithm: only HS256/JWT accepted. The header is read, never trusted
+  // for verification choice — signature is always HMAC-SHA256.
+  if (header.alg !== ALG || header.typ !== 'JWT') {
+    throw unauthenticated('unsupported token algorithm');
+  }
+
+  // Signature: HMAC over "h.p", constant-time compare. Length check first
+  // because timingSafeEqual throws on mismatched lengths.
+  const expectedSig = createHmac('sha256', secret).update(`${hPart}.${pPart}`).digest();
+  let actualSig;
+  try {
+    actualSig = unb64(sPart);
+  } catch {
+    throw unauthenticated('bad signature');
+  }
+  if (actualSig.length !== expectedSig.length || !timingSafeEqual(actualSig, expectedSig)) {
+    throw unauthenticated('bad signature');
+  }
+
+  // Payload: must decode to a JSON object.
+  let claims;
+  try {
+    const raw = unb64(pPart).toString('utf8');
+    claims = JSON.parse(raw);
+  } catch {
+    throw unauthenticated('malformed token payload');
+  }
+  if (typeof claims !== 'object' || claims === null || Array.isArray(claims)) {
+    throw unauthenticated('malformed token payload');
+  }
+
+  // Expiry is half-open: exp <= now counts as expired. Must be a number.
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (typeof claims.exp !== 'number' || claims.exp <= nowSec) {
+    throw unauthenticated('token expired');
+  }
+
+  // Issuer + audience must match exactly.
+  if (claims.iss !== ISS || claims.aud !== AUD) {
+    throw unauthenticated('bad token issuer or audience');
+  }
+
+  // jti must be a non-empty string.
+  if (typeof claims.jti !== 'string' || claims.jti.length === 0) {
+    throw unauthenticated('token has no jti');
+  }
+
+  return claims;
 }
 
 

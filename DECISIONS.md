@@ -20,6 +20,13 @@ Graded copy lives here at repo root. Template source: `starter/DECISIONS.md`.
 **What I rejected:** encoding the documented matrix; it passes public suites and fails grading on a different nonce.
 **What would change my mind:** a fixture where the catalogue is fixed — contradicts the overlay design, so none.
 
+### Algorithm is pinned before the signature is checked
+
+**What I chose:** parse + validate `alg==='HS256' && typ==='JWT'`, then HMAC-SHA256 with constant-time compare; length check first.
+**Why:** `node scripts/check-jwt.js` 43/43 — rejects `alg:none` (empty / trailing-dot / kept-sig), `HS512`/`RS256` substitution, truncated/empty/non-base64 sigs, payload-swap with old sig.
+**What I rejected:** trusting the header's `alg` to pick the hash, and early-return on decode without object checks (`null`/array payload would TypeError instead of 401).
+**What would change my mind:** a spec allowing multiple algs with a key per alg — then pinning becomes a whitelist, not a constant.
+
 <!-- Copy the block above per decision. -->
 
 ---

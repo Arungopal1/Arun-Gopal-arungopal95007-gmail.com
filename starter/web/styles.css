@@ -1,0 +1,160 @@
+/* RemoteOps console styles.
+ *
+ * Per-org identity is carried by [data-org-theme]: each theme sets its own
+ * --surface/--accent, and .app-shell paints from var(--surface), so switching
+ * orgs measurably changes the computed background color.
+ */
+
+[data-org-theme='cobalt'] {
+  --surface: #dbe7ff;
+  --accent: #1d4ed8;
+}
+
+[data-org-theme='amber'] {
+  --surface: #fdf0d3;
+  --accent: #b45309;
+}
+
+[data-org-theme='moss'] {
+  --surface: #dcefe0;
+  --accent: #2f7d3b;
+}
+
+[data-org-theme='plum'] {
+  --surface: #f0dcf2;
+  --accent: #7e22ce;
+}
+
+[data-org-theme='rust'] {
+  --surface: #f7ddd2;
+  --accent: #b3341a;
+}
+
+[data-org-theme='teal'] {
+  --surface: #d3f0ee;
+  --accent: #0f766e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: #1c2333;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--surface);
+  padding: 16px 24px 48px;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.org-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.app-nav button[aria-current='page'] {
+  background: var(--accent);
+  color: #fff;
+}
+
+button,
+select,
+input {
+  font: inherit;
+  padding: 4px 10px;
+}
+
+button {
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.75);
+  margin-top: 12px;
+}
+
+th,
+td {
+  border: 1px solid #9aa3b5;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.login-page,
+.invite-page,
+.boot-page {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 24px;
+  border: 1px solid #9aa3b5;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.login-page label,
+.invite-page label {
+  display: block;
+  margin: 12px 0;
+}
+
+.login-page input,
+.invite-page input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+[data-testid='login-error'],
+[data-testid='invite-error'] {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid #b3341a;
+  background: #fdecea;
+  color: #7a2410;
+  border-radius: 4px;
+}
+
+fieldset {
+  margin: 12px 0;
+  border: 1px solid #9aa3b5;
+}
+
+fieldset label {
+  display: inline-block;
+  margin: 2px 12px 2px 0;
+}
+
+.pill {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85em;
+}

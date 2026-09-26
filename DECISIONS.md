@@ -27,6 +27,20 @@ Graded copy lives here at repo root. Template source: `starter/DECISIONS.md`.
 **What I rejected:** trusting the header's `alg` to pick the hash, and early-return on decode without object checks (`null`/array payload would TypeError instead of 401).
 **What would change my mind:** a spec allowing multiple algs with a key per alg — then pinning becomes a whitelist, not a constant.
 
+### Sessions are grandfathered; tenancy events cascade
+
+**What I chose:** role/grant changes bump `perm_version` only; suspension/removal/transfer call `endActiveSessions` with distinct `end_reason`; TTL sweep on reads.
+**Why:** `check-api.js` §7.1 (live session survives demote, next blocked + TOKEN_STALE) and §7.2 (suspend ends with `user_suspended`); commit `f8dbc38` run 66/66.
+**What I rejected:** ending sessions on grant revoke (would break in-flight repair) and `permission_revoked` reason (spec has none).
+**What would change my mind:** a requirement for immediate revocation — then TTL would need shortening, not cascade widening.
+
+### Console presence comes from the server, never roles
+
+**What I chose:** `Action` null unless `entry.effect==='allow'`; device buttons read per-row sets; catalogue from `session.permissions` keys.
+**Why:** UI architecture test (intercept devices → deny → element vanishes) + 25/25 UI pass; `grep role=== web/` clean.
+**What I rejected:** client role matrix and gating start buttons on `session:start` (would hide Dana's granted Control).
+**What would change my mind:** offline-first UI — then a cached matrix with version invalidation, currently not needed.
+
 <!-- Copy the block above per decision. -->
 
 ---

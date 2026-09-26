@@ -83,18 +83,39 @@ both orgs, drops device-scoped grants, cascades sessions. `check-api.js` in rtes
 _Two permissions, one device. What did you have to resolve, and in what order, to keep the two
 failure reasons distinguishable?_
 
+2026-09-26: `assertCanStartSession` checks `session:start` first (`missing_permission`), then the
+mode perm (`missing_device_permission`) — both on the same deviceId. Exclusivity via partial unique
+index (DB arbiter, not check-then-act); `view` excluded. Grandfathering: role/grant changes bump
+`perm_version` (next request 401 stale) but never end sessions; suspension/removal/transfer cascade
+with `user_suspended`/`membership_removed`/`device_transferred`. TTL sweep before reads.
+
 ## Phase 6 — audit
 
 _What did you decide counts as an auditable event, and what pushed you to that line?_
+
+2026-09-26: Success rows inside the mutation transaction (exactly one); `auditDenials` records
+FORBIDDEN denials with reason before rethrow. Denied GETs also flow through where gated (audit of
+`session:view` etc. visible in `check-api` denials assertion). Append-only enforced by triggers.
 
 ## Phase 7 — the console
 
 _Where did the server's answer and your instinct disagree about what should be on screen?_
 
+2026-09-26: Built server-driven presence: `Action` returns null unless `entry.effect==='allow'`;
+no `role===` in web/. Device rows carry per-row sets; start buttons gate on the device perm alone
+(Dana viewer + `device:control` grant on one Globex row must show Control there). Org theme drives
+`backgroundColor` so switching measurably changes appearance. `vite build` 39 modules. UI suite in
+rtest copy (Windows-only loader/DIST path fixes there, repo files unchanged): 25/25 passed.
+
 ## Phase 8 — hardening
 
 _What did you measure, what did you fix, and what did you deliberately leave alone? Anything you
 chose not to build belongs here with its reason._
+
+2026-09-26: `resolveDevices` batches (1 grants query + in-memory filter, no cache → no stale
+authority). Full green: check-jwt 43/43, check-permissions 35/35, personalisation 18/18,
+check-api 66/66 (overlay loaded), UI 25/25. Left out: pagination beyond audit, device search,
+password reset, real remote access (records only) — scope cuts per BRIEF.
 
 ## Open threads
 

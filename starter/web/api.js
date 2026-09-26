@@ -73,7 +73,11 @@ export const api = {
   },
 
   logout() {
-    token = null;
+    // Best effort server-side revoke + cookie clear; local token is dropped
+    // regardless so sign-out never leaves the console unlocked.
+    return request('POST', '/auth/logout', {}).catch(() => null).then(() => {
+      token = null;
+    });
   },
 
   me() {

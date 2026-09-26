@@ -129,9 +129,10 @@ export default function App() {
     }
   }
 
-  function handleLogout() {
-    api.logout();
-    window.location.reload();
+  async function handleLogout() {
+    await api.logout();
+    setSession(null);
+    setView('devices');
   }
 
   async function handleInviteAccepted() {

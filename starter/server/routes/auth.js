@@ -63,6 +63,11 @@ function refreshExpiry() {
   return new Date(Date.now() + REFRESH_TTL_SECONDS * 1000).toISOString();
 }
 
+// Expire the refresh cookie in the browser (overwrites rt with Max-Age=0).
+function clearRefreshCookie(res) {
+  res.setHeader('set-cookie', 'rt=; HttpOnly; SameSite=Strict; Path=/v1/auth; Max-Age=0');
+}
+
 export function register(router, { db, secret }) {
   // POST /v1/auth/login — public, credential based.
   router.post('/v1/auth/login', async (ctx, _params, res) => {
@@ -219,6 +224,25 @@ export function register(router, { db, secret }) {
       role: active.role,
       orgs: publicOrgs(orgs),
     });
+  });
+
+  // POST /v1/auth/logout — public, cookie based. Revokes the refresh family
+  // (if any) and clears the cookie so a reload cannot restore the session.
+  // Extra endpoint beyond BRIEF §5.1, backwards compatible: existing routes unchanged.
+  router.post('/v1/auth/logout', async (ctx, _params, res) => {
+    const raw = readRefreshCookie(ctx.req);
+    if (raw) {
+      const row = db
+        .prepare('SELECT family_id FROM refresh_tokens WHERE token_hash = ?')
+        .get(hashRefreshToken(raw));
+      if (row) {
+        db.prepare(
+          `UPDATE refresh_tokens SET revoked_at = ? WHERE family_id = ? AND revoked_at IS NULL`
+        ).run(nowIso(), row.family_id);
+      }
+    }
+    clearRefreshCookie(res);
+    send(res, 204);
   });
 
   // GET /v1/auth/me — authenticated, who am I in this org.

@@ -41,6 +41,13 @@ Graded copy lives here at repo root. Template source: `starter/DECISIONS.md`.
 **What I rejected:** client role matrix and gating start buttons on `session:start` (would hide Dana's granted Control).
 **What would change my mind:** offline-first UI — then a cached matrix with version invalidation, currently not needed.
 
+### Sign-out revokes the refresh family
+
+**What I chose:** extra `POST /v1/auth/logout` (public, cookie-based; revokes family, clears `rt`); frontend calls it then drops the token with no reload.
+**Why:** sign-out reloaded, so the live refresh cookie restored the session instantly — reported as "signout work agala". Verified LOGOUT 204 then refresh → 401; reload-without-logout still restores (UI test green).
+**What I rejected:** token-drop-only logout (leaves reusable cookie) and an authenticated-only logout (fails exactly when the token is expired).
+**What would change my mind:** a spec forbidding extra routes — then logout stays client-only with the reload-restores caveat.
+
 <!-- Copy the block above per decision. -->
 
 ---

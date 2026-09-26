@@ -120,3 +120,10 @@ password reset, real remote access (records only) — scope cuts per BRIEF.
 ## Open threads
 
 _Things you know are wrong, unfinished, or that you would do differently with another day._
+
+2026-09-26 (sign-out fix): Sign out reloaded the page, so the valid refresh cookie immediately
+restored the session — looked like logout did nothing. Added `POST /v1/auth/logout` (public,
+cookie-based; revokes the refresh family, clears `rt` with Max-Age=0; no-cookie → 204). Frontend
+`api.logout()` now calls it (best-effort) then drops the in-memory token with no reload.
+Verified: LOGOUT 204, refresh-after-logout 401; `check-api.js` 66/66 and reload-restores test still
+pass (reload without logout still restores).

@@ -45,6 +45,17 @@ everything (it did — 0/43 shape-checks). Prediction that was wrong: assumed `B
 _This is where most people's first model is wrong. Write down the model you started with, the
 observation that broke it, and the model you moved to. Be specific about the observation._
 
+2026-09-26: Started with precedence-by-specificity instinct (device-scoped allow should carve out
+org-wide deny). `check-permissions.js` discriminating case says otherwise: org-wide deny +
+device allow on same device still `deny`. Moved to deny-first combine: collect denies, then
+baseline + allows, then implicit. Org-level (`deviceId null`) unions ALL grants including
+device-scoped (nav lights up if any row allows); per-device filters to org-wide + that device.
+Half-open windows `starts<=now<expires` in SQL. `resolveDevices` batches: catalogue/membership/
+baseline once + one grants query, in-memory per-row filter — no N+1, no cache so no stale
+authority. Suspended short-circuits to `suspended` (freshness skipped in context so 403 survives);
+no membership to `not_a_member`. Checks: `check-permissions.js` 35/35, `check-personalisation.js`
+18/18 (role `reviewer`, perm `device:reboot`).
+
 ## Phase 3 — orgs, members, invites
 
 _Anything you had to work out that no document states. Invite lifecycle states are a common

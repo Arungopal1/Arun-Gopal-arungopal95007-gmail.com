@@ -11,7 +11,18 @@
 // The server boots with this file empty: every /v1/* request returns 404 until you
 // register something. That is the intended starting line.
 
+import * as auth from './auth.js';
+import * as orgs from './orgs.js';
+import * as invites from './invites.js';
+import * as devices from './devices.js';
+import * as sessions from './sessions.js';
+
+// First match wins — specific paths before parameterised ones
+// (handled inside orgs.js for /members/me vs /members/:userId).
 export function registerRoutes(router, deps) {
-  const { db, secret } = deps;
-  void db; void secret;
+  auth.register(router, deps);
+  orgs.register(router, deps);
+  invites.register(router, deps);
+  devices.register(router, deps);
+  sessions.register(router, deps);
 }

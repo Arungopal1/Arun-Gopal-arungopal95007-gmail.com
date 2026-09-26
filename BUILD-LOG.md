@@ -61,10 +61,22 @@ no membership to `not_a_member`. Checks: `check-permissions.js` 35/35, `check-pe
 _Anything you had to work out that no document states. Invite lifecycle states are a common
 source of this._
 
+2026-09-26: Auth routes (login/token/refresh/me) + orgs/members/effective/audit + invites done.
+Invite atomic claim via `UPDATE ... WHERE accepted NULL AND revoked NULL` (changes===1 wins);
+existing user attach (no duplicate), invited→active + bump, removed→reactivate. Peek leaks only
+orgName/role/email. Tested via `check-api.js` invites block in rtest copy (Windows loader patched
+there only): 11/11 invite assertions pass.
+
 ## Phase 4 — devices and grants
 
 _What happens at the boundary where two grants disagree, or where a grant's scope and the
 question's scope differ? Say what you predicted and what you got._
+
+2026-09-26: Device CRUD scoped by org (cross-org 404), per-row `device:view` exclusion, batched
+`resolveDevices` for list. Grants validate 404s before `assertMayGrant` (cross-org stays invisible),
+unknown pattern reaches FK → 400 `unknown_permission`, self-grant 403. Transfer needs provision in
+both orgs, drops device-scoped grants, cascades sessions. `check-api.js` in rtest: ALL PASS 66/66
+(with overlay loaded: 3 orgs, 20 perms).
 
 ## Phase 5 — sessions
 
